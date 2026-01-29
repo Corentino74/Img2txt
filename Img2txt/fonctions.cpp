@@ -1,68 +1,74 @@
-// Fichier de définitions des fonctions et structures
+// ============================================================================
+// Fichier: fonctions.cpp
+// Description: Implémentation des fonctions de conversion d'images en ASCII
+// ============================================================================
 
-#pragma once
 #include "fonctions.h"
+#include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 // Fonction pour gestion png
-
+//
 // Fonction utilitaire pour obtenir l'extension d'un fichier en minuscules
 static std::string obtenirExtension(const std::string& chemin) {
 	const auto pos = chemin.find_last_of('.');
 	if (pos == std::string::npos) return {};
 	std::string ext = chemin.substr(pos + 1);
-	std::transform(ext.begin(), ext.end(), ext.begin(), 
+	std::transform(ext.begin(), ext.end(), ext.begin(),
 		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 	return ext;
 }
-
+//
 // Fonction générique pour charger une image (PGM, PNG, JPG)
 ImagePGM chargerImage(const std::string& chemin) {
 	const std::string ext = obtenirExtension(chemin);
-	
+
 	if (ext == "pgm") {
 		return lireFichierPGM(chemin);
 	}
-	
+
 	if (ext == "png" || ext == "jpg" || ext == "jpeg") {
 		// Chargement avec stb_image
 		int w = 0, h = 0, comp = 0;
 		unsigned char* data = stbi_load(chemin.c_str(), &w, &h, &comp, 0);
-		
+
 		if (!data) {
 			throw std::runtime_error("Impossible de charger l'image : " + chemin);
 		}
-		
+
 		ImagePGM img;
 		img.largeur = w;
 		img.hauteur = h;
 		img.pixels.resize(static_cast<size_t>(w) * static_cast<size_t>(h));
-		
+
 		// Conversion en niveaux de gris si nécessaire
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
 				const int idx = (y * w + x) * comp;
 				uint8_t gray = 0;
-				
+
 				if (comp == 1) {
 					// Déjà en niveaux de gris
 					gray = data[idx];
-				} else if (comp == 3 || comp == 4) {
+				}
+				else if (comp == 3 || comp == 4) {
 					// RGB ou RGBA => conversion en niveaux de gris
 					const unsigned char r = data[idx + 0];
 					const unsigned char g = data[idx + 1];
 					const unsigned char b = data[idx + 2];
 					gray = static_cast<uint8_t>(0.299 * r + 0.587 * g + 0.114 * b);
 				}
-				
+
 				img.pixels[static_cast<size_t>(y) * static_cast<size_t>(w) + static_cast<size_t>(x)] = gray;
 			}
 		}
-		
+
 		stbi_image_free(data);
 		return img;
 	}
-	
+
 	throw std::runtime_error("Format de fichier non supporté : " + chemin);
 }
 
@@ -85,9 +91,9 @@ ImagePGM lireFichierPGM(const std::string& nomFichier) { // Renvoie une structur
 	}
 
 	// Lire les dimensions
-	std::getline(fichier, ligne);	// Lire la ligne suivante => dimensions
-	std::istringstream iss(ligne);	// Utiliser istringstream pour extraire les dimensions
-	if (!(iss >> image.largeur >> image.hauteur)) {	// Extraction des dimensions
+	std::getline(fichier, ligne);			 // Lire la ligne suivante => dimensions
+	std::istringstream iss(ligne);					// Utiliser istringstream pour extraire les dimensions
+	if (!(iss >> image.largeur >> image.hauteur)) {		// Extraction des dimensions
 		throw std::runtime_error("Impossible de lire les dimensions de l'image.");
 	}
 
@@ -125,14 +131,17 @@ void sauvegarderEnPGM(const ImagePGM& image, const std::string& nomFichier) {
 
 // - Gestion ASCII ART 
 // Transformation de l'image en ASCII art et retour sous forme de chaîne de caractères
+// ⚠️ CORRECTION RATIO : Les caractères ASCII ont un ratio hauteur/largeur d'environ 2:1
+// Pour compenser, on saute une ligne sur deux lors de la conversion
 std::string genererAsciiArt(const ImagePGM& image, const std::vector<std::string>& palette) { // prend en entrée une structure ImagePGM et une palette
 	std::ostringstream oss;										// utilisation d'un flux de sortie en mémoire pour construire la chaîne de caractères
 	uint8_t pixel;
 	int index;
 	const int paletteSize = static_cast<int>(palette.size());	// taille de la palette donné en arguments
-	
-	// Algorithme de conversion, la magie opère !
-	for (int y = 0; y < image.hauteur; ++y) {					// boucle sur les lignes de l'image
+
+	// Algorithme de conversion avec correction du ratio
+	// On parcourt l'image en sautant une ligne sur deux (step = 2) pour compenser le ratio 2:1 des caractères
+	for (int y = 0; y < image.hauteur; y += 2) {				// ⚠️ STEP = 2 pour corriger l'étirement vertical
 		for (int x = 0; x < image.largeur; ++x) {				// boucle sur les colonnes de l'image
 			pixel = image.pixels[y * image.largeur + x];		// récupération de la valeur du pixel à la position (x, y) courante	
 			index = (pixel * (paletteSize - 1)) / 255;			// calcul de l'index dans la palette en fonction de la valeur du pixel (0-255)
@@ -158,7 +167,7 @@ void sauvegarderAsciiArt(const ImagePGM& image, const std::vector<std::string>& 
 
 	// 2Génération de l'Ascii Art
 	std::string asciiArt = genererAsciiArt(image, palette);
-	
+
 	// 3Écriture dans le fichier
 	fichier << asciiArt;
 
@@ -176,47 +185,98 @@ ImagePGM inverserCouleurs(const ImagePGM& image) {
 }
 
 //GESTIONS DES PALETTES	
-std::vector<std::string> getPaletteParDefaut() 
+// ℹ️ Toutes les palettes sont ordonnées du plus foncé au plus clair
+
+// Palette par défaut - Simple et efficace
+std::vector<std::string> getPaletteParDefaut()
 {
-	return { "W", "w", "l", "i", ":", ",", ".", " " };
+	return { "@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", " " };
 }
+
+// Palette classique - L'originale qui marchait bien !
 std::vector<std::string> getPaletteClassiqueEtendue() {
 	return { "@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "`", " " };
 }
+
+// Palette Blocs - Parfaite pour le pixel art et les dégradés
 std::vector<std::string> getPaletteBlocs() {
-	return { "█", "▓", "▒", "░", " ", " " };
+	return { "█", "▓", "▒", "░", " " };
 }
+
+// Palette Nature/Lumière - Symboles organiques
 std::vector<std::string> getPaletteNatureLumiere() {
-	return { "♠", "♣", "♥", "♦", "◊", "○", "●", "◌", " ", " " };
+	return { "●", "◉", "○", "◌", "◊", "♦", "♥", "♠", "♣", " " };
 }
+
+// Palette Détails Fins - Bonne pour les portraits
 std::vector<std::string> getPaletteDetailsFins() {
-	return { "@", "#", "S", "%", "*", "+", "=", ":", "-", ".", " " };
+	return { "@", "#", "S", "%", "?", "*", "+", "=", "-", ":", ".", " " };
 }
+
+// Palette Ombre/Lumière - Dégradés progressifs
 std::vector<std::string> getPaletteOmbreLumiere() {
-	return { "▇", "▆", "▅", "▃", "▂", "▁", "▀", "·", " ", " " };
+	return { "█", "▇", "▆", "▅", "▄", "▃", "▂", "▁", "·", " " };
 }
+
+// Palette Cyberpunk - Formes géométriques
 std::vector<std::string> getPaletteCyberpunk() {
-	return { "■", "□", "◉", "○", "◍", "◎", "●", "◌", " ", " " };
+	return { "■", "□", "●", "○", "◉", "◌", "◍", "◎", "▪", "▫", " " };
 }
+
+// Palette Médiéval - Style textuel ancien
 std::vector<std::string> getPaletteMedieval() {
-	return { "☠", "♔", "♖", "♗", "♘", "♙", "⚔", "⛓", " ", " " };
+	return { "#", "X", "x", "+", "=", "-", "~", ":", ".", " " };
 }
+
+// Palette Aquarelle - Symboles légers
 std::vector<std::string> getPaletteAquarelle() {
-	return { "♫", "☼", "☁", "☂", "☺", "♀", "♂", "♻", " ", " " };
+	return { "o", "O", "°", "º", "*", "·", "¨", "˙", ".", " " };
 }
+
+// Palette Haute Définition - Grande gamme ASCII
 std::vector<std::string> getPaletteHauteDefinition() {
 	return {
-		"@", "▓", "▒", "░", "■", "●", "◘", "○", "◙", "◌",
-		"◍", "☼", "☺", "♫", "♦", "♠", "♣", "♥", "◊", "♂",
-		"♀", "∴", "∵", "≈", "≠", "≡", "≣", "⊕", "⊗", " "
+		"$", "@", "B", "%", "8", "&", "W", "M", "#", "*", "o", "a", "h",
+		"k", "b", "d", "p", "q", "w", "m", "Z", "O", "0", "Q", "L", "C",
+		"J", "U", "Y", "X", "z", "c", "v", "u", "n", "x", "r", "j", "f",
+		"t", "/", "\\", "|", "(", ")", "1", "{", "}", "[", "]", "?", "-",
+		"_", "+", "~", "<", ">", "i", "!", "l", "I", ";", ":", ",", "\"",
+		"^", "`", "'", ".", " "
 	};
 }
+
+// Palette Gradients - Dégradés
 std::vector<std::string> getPaletteGradients() {
-	return {
-		"██", "▛▛", "▙▙", "▜▜", "▟▟", "▚▚", "▞▞", "▗▖", "▄▄", "▀▀",
-		"▂▂", "▃▃", "▅▅", "▆▆", "▇▇", "■□", "●◌", "◉○", "◍◎", " "
-	};
+	return { "█", "▓", "▒", "░", "▄", "▀", "■", "□", "●", "○", "·", " " };
 }
+
+// Palette 2-Bit - Minimaliste (noir et blanc pur)
+std::vector<std::string> getPalette2Bit() {
+	return { "█", " " };
+}
+
+// ============================================================================
+// 🎨 SECTION MODE COULEUR (Préparation future)
+// ============================================================================
+// Pour implémenter le mode couleur, il faudrait :
+// 1. Stocker l'image en RGB au lieu de niveaux de gris
+// 2. Créer une nouvelle fonction genererAsciiArtCouleur() qui utilise des codes ANSI
+// 3. Ajouter des palettes de couleurs ANSI (16, 256 couleurs)
+//
+// Exemple de codes ANSI pour couleurs :
+// - 16 couleurs : \033[38;5;Xm où X = 0-15
+// - 256 couleurs : \033[38;5;Xm où X = 0-255
+// - RGB : \033[38;2;R;G;Bm
+//
+// La palette de blocs serait PARFAITE pour du pixel art en couleur !
+// Exemple : █ en couleur = pixel parfait
+//
+// Complexité estimée : Moyenne
+// - Modifier chargerImage() pour garder les données RGB
+// - Créer une structure ImageRGB { int largeur, hauteur; vector<RGB> pixels; }
+// - Implémenter genererAsciiArtCouleur() avec codes ANSI
+// - Ajouter option "Mode Couleur" dans l'interface Qt
+// ============================================================================
 
 //déf fonction pour lire une pallette externe depuis un fichier
 std::vector<std::string> lirePalette(const std::string& nomFichier) {

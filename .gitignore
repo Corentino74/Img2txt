@@ -1,6 +1,14 @@
-build_release.sh
 build
 /out
 .vs
 Img2txt.vcxproj.user
 Img2txt.vcxproj.filters
+/release
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.log
+*.idb
+/debug
+/build
