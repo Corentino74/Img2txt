@@ -1,4 +1,4 @@
-# Img2txt 3.0 🎨
+# Img2txt !3.5! 
 =======================
 
 > **Img2txt** - Convertisseur d'images en art ASCII avec interface graphique Qt6 !
@@ -138,4 +138,5 @@ Pour toute question : corentinchitwood@gmail.com
        "X*#######oo*ho###M##******oo*oooaoo*##*ookhko**ohko#ohao*###oa*#*oabpho*#*okwZqk
        |o*##M##*o***aa#####o**#****o*o****###**hkka*##*aka**ooa*##*aao##*akqdo**ooakqwba
       ;a*ooo##**oho*oa##*##oooo#*ooo*o**###**ohkbao*#*aha**ooa*#**ohh*##ohpmb#oaaoaakdpw
+
       {###ooo**ahh*#*oo####oooooo*oo**#*##*ohkdhho*##*hhao*oaooo*aaao*#ohdZqhoooooohpCUq {a***#ooahkko*ooo*##*oaoo**oo**#***ohhdbka*###*aoaoooooo#*aaka*#*abwOpoao**ohqCYZk
