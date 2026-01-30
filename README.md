@@ -2,13 +2,14 @@
 =======================
 
 > **Img2txt** - Convertisseur d'images en art ASCII avec interface graphique Qt6 !
-Cette version 3.0 propose une interface graphique moderne et intuitive pour transformer vos images en rendus textuels.
+Cette version 3.5 propose une plus grandes gamme de palettes que la précédentes ! 
+(mais à quand le support couleur ? Chut.)
 
 ## Fonctionnalités
 
 - Interface graphique moderne avec Qt6
 - Conversion d'images PNG/JPG en art ASCII
-- +11 palettes de caractères prédéfinies (ajoutez les vôtres !)
+- Plein de palettes de caractères prédéfinies (ajoutez les vôtres si vous le voulez !)
 - Fenêtre de calibrage pour prévisualiser le rendu
 - Redimensionnement et ajustement du ratio
 - Inversion du rendu (négatif) 
@@ -97,3 +98,44 @@ Pour toute question : corentinchitwood@gmail.com
   Fait avec amour et beaucoup de caractères ASCII !
 </p>
 </p>
+
+                              ???_~>i+?-+>l;,,,,,:;;;
+                            +]-?{}]-<>i>>l;,,^^``''`,;
+                          >><_?]_?->!I;;;II:,"^``'''''',
+                        !-<>+-_++~!;,",,:;ll;:,"``````'^;
+                        ;i__<}?+>l;!li<-[(trf/|1>;,^```'`;
+                        :,;!<~--+>+}juXUQ0QJYzvxt]il:``''^
+                        !+|nucvvcJLQ0ZZZO0LJUYcnxr{il;,"^^
+                        i?cQ0OZmZZmwwwwqqmOQCCUcnjt{i;:,:",
+                        l/LZwqdbbbddddddqw0LCCJzrt(?l,,^``"
+                        (LwqqqddddbbdqmQLCQ0QCXj|({+;,"``"l
+                        _Lww0CL0ZZZOLXf{~ii+}}-?1)()+:,"^>~
+                        it1?+  [)xYUn{---[~,Ii+]])\\};l)/]+-
+                         f1~-I,~?/0dJjnvuvunj||rucuj|-+1[j/|[
+                         UcxuurxL0wdUtzJOOZOO00QCYvf|}+)-+\t~
+                         QwdbbbbpOqwYxjXmqppppmQJXn\1]!)fff(
+                        iQpdbpOzQ0qmUXvr(uvJ0QQXnf\){-!}tjj>
+                         r0ZQx)YccYcf]<>)xUXjxcu/){}]+l+f)
+                          nY/\YJvf1{]-1|/fjf\\\u|{}[]~;;
+                           rrf(\)}{}}[[{}}tzXzUx{}[?_!:
+                             vcUUXzYJcnunuzXXvj([[-~ii-<
+                              fcJYzujjuczzYzx\[--+<<+_[-
+                              i[nC0QLLLUYcnt)->i>_??])\
+                               l<1nvuxrxjt{?+i<?]?]1\ff\>
+                                 i--?--++~~+-????}|fjjjt{!
+                                  ixr/)_~_-?--?{(/frxxxj\\)r\!
+                                  nvxrxnxjffffrvYUUUYcnffrLLOmOQv~
+                                 I)CCYununnnnnvYJCLLJYzvxX0OqbbppqZZj+
+                              1whkcJLQCzccvvvczUJCCJYYXCZ0Zbhkbddpddbdpmc]!
+                            OkhkahrzUCLJXccczYYUUJJYJmmZmdhhbkbdddbbbbhhkbbkbC
+                        udahaahhahk/YJJJYccvvczYCZqwwwqbakdkkbdbdbbbkkhhhaao*ooakpO
+                   w*##****ooaaakddpqqqmZmpdqqwwwpkahkkkkkbkdbdkbkbhh**o*#*oooooakp0_
+               xk*####o##M###*oaoabpqwmmwwqpdbkhhbbhhhkkhkkbkbkbkhha**#*#**#**ohahkkbO
+              o#####*#o##M##M######aooo**oakdbbbbhhhhhbhhbbdkbbbbhha#***###M##aka#*ohkd
+           :J##M####**o*##M############***##*aahahhhhbbkkkkbkkkhbaao##oo#####ohbo###okdb
+         IO#######**oo**######**#******#**ooo*o*oaahbkkkhkdkkhhbhao##oao###*abha*##*hwZp
+        i*########*ooo*M#M##****o****oooooooo*###ohhhaaoakkhaakhao*#*oo##*oadhao##*ap0Zb
+       "X*#######oo*ho###M##******oo*oooaoo*##*ookhko**ohko#ohao*###oa*#*oabpho*#*okwZqk
+       |o*##M##*o***aa#####o**#****o*o****###**hkka*##*aka**ooa*##*aao##*akqdo**ooakqwba
+      ;a*ooo##**oho*oa##*##oooo#*ooo*o**###**ohkbao*#*aha**ooa*#**ohh*##ohpmb#oaaoaakdpw
+      {###ooo**ahh*#*oo####oooooo*oo**#*##*ohkdhho*##*hhao*oaooo*aaao*#ohdZqhoooooohpCUq {a***#ooahkko*ooo*##*oaoo**oo**#***ohhdbka*###*aoaoooooo#*aaka*#*abwOpoao**ohqCYZk

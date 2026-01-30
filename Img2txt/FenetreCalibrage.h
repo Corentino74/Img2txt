@@ -13,6 +13,7 @@ Deuxieme fenêtre pour le calibrage :
 #pragma once
 
 #include <QWidget>
+#include <QString>
 #include <QComboBox>
 #include <QSpinBox>
 #include <QPushButton>

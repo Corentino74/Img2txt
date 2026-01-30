@@ -12,3 +12,5 @@ Img2txt.vcxproj.filters
 *.idb
 /debug
 /build
+/VERSIONS_PBLIEEES
+liste_palettes.txt

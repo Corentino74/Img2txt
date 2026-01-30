@@ -77,10 +77,10 @@ private:
     QLabel* lblInfo;
     QLabel* lblStatut;
 
+    bool imageValide;                 // Déclaré avant imageChargee pour ordre d'initialisation
     ImagePGM imageChargee;
     QString cheminPGM;
     QString cheminImageOriginale;     // PNG/JPG original pour preview
-    bool imageValide;
     QString dossierImages;
     QString dossierRendus;
     QString dossierTemp;              // Dossier temporaire pour PGM

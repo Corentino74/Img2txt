@@ -76,18 +76,28 @@ void FenetreCalibrage::setupUI()
 
     comboPalette = new QComboBox();
     comboPalette->setStyleSheet("QComboBox { background-color: #2B2B2B; color: white; padding: 5px; border: 1px solid #4A90E2; } QComboBox:hover { border: 1px solid #357ABD; }");
-    comboPalette->addItem(QString::fromUtf8("Par défaut"));
+    comboPalette->addItem("Normale");
+    comboPalette->addItem("Classique");
     comboPalette->addItem(QString::fromUtf8("Classique Étendue"));
     comboPalette->addItem("Blocs");
+    comboPalette->addItem("Clair Obscur");
     comboPalette->addItem(QString::fromUtf8("Nature/Lumière"));
-    comboPalette->addItem(QString::fromUtf8("Détails fins"));
-    comboPalette->addItem(QString::fromUtf8("Ombre/Lumière"));
-    comboPalette->addItem("Cyberpunk");
     comboPalette->addItem(QString::fromUtf8("Médiéval"));
+    comboPalette->addItem(QString::fromUtf8("Détails fins"));
     comboPalette->addItem("Aquarelle");
-    comboPalette->addItem(QString::fromUtf8("Haute Définition"));
     comboPalette->addItem("Gradients");
+    comboPalette->addItem("Cyberpunk");
     comboPalette->addItem("2-Bit (Noir & Blanc)");
+    comboPalette->addItem(QString::fromUtf8("Haute Définition"));
+    comboPalette->addItem("Lettres Seules");
+    comboPalette->addItem(QString::fromUtf8("Détourage"));
+    comboPalette->addItem("Reflet");
+    comboPalette->addItem("Points (Dithering)");
+    comboPalette->addItem(QString::fromUtf8("Lignes (Rétro)"));
+    comboPalette->addItem("Stippling");
+    comboPalette->addItem("Tramage");
+    comboPalette->addItem("Minimaliste");
+    comboPalette->addItem("Monospace");
     connect(comboPalette, QOverload<int>::of(&QComboBox::currentIndexChanged),
         this, &FenetreCalibrage::onChangerPalette);
     connect(comboPalette, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -134,6 +144,7 @@ void FenetreCalibrage::setupUI()
 
     checkInverser = new QCheckBox(QString::fromUtf8("Inverser les couleurs"));
     checkInverser->setStyleSheet("QCheckBox { color: white; padding-left: 10px; }");
+    checkInverser->setChecked(true);  // Activé par défaut
     connect(checkInverser, &QCheckBox::stateChanged,
         this, &FenetreCalibrage::actualiserApercu);
     layoutPanneau->addWidget(checkInverser);
@@ -189,21 +200,32 @@ void FenetreCalibrage::setupUI()
     layoutPrincipal->addLayout(layoutCentral, 1);
 }
 
+// Changement de palette, à modifier pour en ajouter de nouvelles !!
 void FenetreCalibrage::onChangerPalette(int index)
 {
     switch (index) {
-    case 0: paletteActuelle = getPaletteParDefaut(); break;
-    case 1: paletteActuelle = getPaletteClassiqueEtendue(); break;
-    case 2: paletteActuelle = getPaletteBlocs(); break;
-    case 3: paletteActuelle = getPaletteNatureLumiere(); break;
-    case 4: paletteActuelle = getPaletteDetailsFins(); break;
-    case 5: paletteActuelle = getPaletteOmbreLumiere(); break;
-    case 6: paletteActuelle = getPaletteCyberpunk(); break;
-    case 7: paletteActuelle = getPaletteMedieval(); break;
+    case 0: paletteActuelle = getPaletteNormale(); break;
+    case 1: paletteActuelle = getPaletteParDefaut(); break;
+    case 2: paletteActuelle = getPaletteClassiqueEtendue(); break;
+    case 3: paletteActuelle = getPaletteBlocs(); break;
+    case 4: paletteActuelle = getPaletteOmbreLumiere(); break;
+    case 5: paletteActuelle = getPaletteNatureLumiere(); break;
+    case 6: paletteActuelle = getPaletteMedieval(); break;
+    case 7: paletteActuelle = getPaletteDetailsFins(); break;
     case 8: paletteActuelle = getPaletteAquarelle(); break;
-    case 9: paletteActuelle = getPaletteHauteDefinition(); break;
-    case 10: paletteActuelle = getPaletteGradients(); break;
+    case 9: paletteActuelle = getPaletteGradients(); break;
+    case 10: paletteActuelle = getPaletteCyberpunk(); break;
     case 11: paletteActuelle = getPalette2Bit(); break;
+    case 12: paletteActuelle = getPaletteSaturation(); break;
+    case 13: paletteActuelle = getPaletteLettresSeules(); break;
+    case 14: paletteActuelle = getPaletteDetourage(); break;
+    case 15: paletteActuelle = getPaletteReflet(); break;
+    case 16: paletteActuelle = getPalettePoints(); break;
+    case 17: paletteActuelle = getPaletteLignes(); break;
+    case 18: paletteActuelle = getPaletteStippling(); break;
+    case 19: paletteActuelle = getPaletteDithering(); break;
+    case 20: paletteActuelle = getPaletteMinimaliste(); break;
+    case 21: paletteActuelle = getPaletteMonospace(); break;
     default: paletteActuelle = getPaletteParDefaut(); break;
     }
 }

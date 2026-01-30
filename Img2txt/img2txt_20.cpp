@@ -1,4 +1,4 @@
-#include "Img2txt_20.h"
+#include "img2txt_20.h"
 
 Img2txt_20::Img2txt_20(QWidget* parent)
     : QMainWindow(parent)

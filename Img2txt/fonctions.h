@@ -12,7 +12,7 @@
 #include <limits>
 #include <algorithm>
 #include <cctype>
-#include "stb_image.h"  // CMake s'occupe de trouver le fichier
+#include <stb_image.h>  // CMake s'occupe de trouver le fichier
 
 // --- STRUCTURES
 
@@ -59,7 +59,7 @@ void sauvegarderAsciiArt(const ImagePGM& image, const std::vector<std::string>& 
 // Fonction pour lire une palette depuis un fichier
 std::vector<std::string> lirePalette(const std::string& nomFichier);
 
-// passage � la palette par d�faut
+// passage a la palette par d�faut
 std::vector<std::string> getPaletteParDefaut();
 
 // autres palettes possibles d�j� dans le code
@@ -71,10 +71,23 @@ std::vector<std::string> getPaletteOmbreLumiere();
 std::vector<std::string> getPaletteCyberpunk();
 std::vector<std::string> getPaletteMedieval();
 std::vector<std::string> getPaletteAquarelle();
-std::vector<std::string> getPaletteHauteDefinition();
-std::vector<std::string> getPaletteGradients(); std::vector<std::string> getPalette2Bit();  // Palette minimaliste : plein + vide
+std::vector<std::string> getPaletteSaturation();
+std::vector<std::string> getPaletteGradients(); 
+std::vector<std::string> getPalette2Bit();
+std::vector<std::string> getPaletteNormale();
+std::vector<std::string> getPaletteLettresSeules();
+std::vector<std::string> getPaletteDetourage();
+std::vector<std::string> getPaletteReflet();
+std::vector<std::string> getPalettePoints();
+std::vector<std::string> getPaletteLignes();
+std::vector<std::string> getPaletteStippling();
+std::vector<std::string> getPaletteDithering();
+std::vector<std::string> getPaletteMinimaliste();
+std::vector<std::string> getPaletteMonospace();
+//std::vector<std::string> getPaletteLines(); //TODO
+
 // inversions des couleurs
 ImagePGM inverserCouleurs(const ImagePGM& image);
 
-// Fonctions pour le r��chantillonnage
+// Fonctions pour le reechantillonnage
 ImagePGM redimensionnerImage(const ImagePGM& image, int nouvelleLargeur, int nouvelleHauteur);

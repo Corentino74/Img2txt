@@ -7,7 +7,7 @@
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb_image.h>
 
 // Fonction pour gestion png
 //
@@ -187,13 +187,18 @@ ImagePGM inverserCouleurs(const ImagePGM& image) {
 //GESTIONS DES PALETTES	
 // ℹ️ Toutes les palettes sont ordonnées du plus foncé au plus clair
 
-// Palette par défaut - Simple et efficace
+// Palette Normale (anciennement Défaut)
+std::vector<std::string> getPaletteNormale() {
+	return { "W", "w", "l", "i", ":", ",", "."};
+}
+
+// Palette Classique
 std::vector<std::string> getPaletteParDefaut()
 {
 	return { "@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", " " };
 }
 
-// Palette classique - L'originale qui marchait bien !
+// Palette classique étendue - Défaut amélioré
 std::vector<std::string> getPaletteClassiqueEtendue() {
 	return { "@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "`", " " };
 }
@@ -203,24 +208,14 @@ std::vector<std::string> getPaletteBlocs() {
 	return { "█", "▓", "▒", "░", " " };
 }
 
-// Palette Nature/Lumière - Symboles organiques
-std::vector<std::string> getPaletteNatureLumiere() {
-	return { "●", "◉", "○", "◌", "◊", "♦", "♥", "♠", "♣", " " };
-}
-
-// Palette Détails Fins - Bonne pour les portraits
-std::vector<std::string> getPaletteDetailsFins() {
-	return { "@", "#", "S", "%", "?", "*", "+", "=", "-", ":", ".", " " };
-}
-
-// Palette Ombre/Lumière - Dégradés progressifs
+// Palette Clair Obscur - Dégradés progressifs
 std::vector<std::string> getPaletteOmbreLumiere() {
 	return { "█", "▇", "▆", "▅", "▄", "▃", "▂", "▁", "·", " " };
 }
 
-// Palette Cyberpunk - Formes géométriques
-std::vector<std::string> getPaletteCyberpunk() {
-	return { "■", "□", "●", "○", "◉", "◌", "◍", "◎", "▪", "▫", " " };
+// Palette Nature/Lumière - Symboles organiques
+std::vector<std::string> getPaletteNatureLumiere() {
+	return { "●", "◉", "○", "◌", "◊", "♦", "♥", "♠", "♣", " " };
 }
 
 // Palette Médiéval - Style textuel ancien
@@ -228,13 +223,33 @@ std::vector<std::string> getPaletteMedieval() {
 	return { "#", "X", "x", "+", "=", "-", "~", ":", ".", " " };
 }
 
+// Palette Détails Fins - Bonne pour les portraits
+std::vector<std::string> getPaletteDetailsFins() {
+	return { "@", "#", "S", "%", "?", "*", "+", "=", "-", ":", ".", " " };
+}
+
 // Palette Aquarelle - Symboles légers
 std::vector<std::string> getPaletteAquarelle() {
 	return { "o", "O", "°", "º", "*", "·", "¨", "˙", ".", " " };
 }
 
+// Palette Gradients - Dégradés
+std::vector<std::string> getPaletteGradients() {
+	return { "█", "▓", "▒", "░", "▄", "▀", "■", "□", "●", "○", "·", " " };
+}
+
+// Palette Cyberpunk - Formes géométriques
+std::vector<std::string> getPaletteCyberpunk() {
+	return { "■", "□", "●", "○", "◉", "◌", "◍", "◎", "▪", "▫", " " };
+}
+
+// Palette 2-Bit - Minimaliste (noir et blanc pur)
+std::vector<std::string> getPalette2Bit() {
+	return { "█", " " };
+}
+
 // Palette Haute Définition - Grande gamme ASCII
-std::vector<std::string> getPaletteHauteDefinition() {
+std::vector<std::string> getPaletteSaturation() {
 	return {
 		"$", "@", "B", "%", "8", "&", "W", "M", "#", "*", "o", "a", "h",
 		"k", "b", "d", "p", "q", "w", "m", "Z", "O", "0", "Q", "L", "C",
@@ -245,14 +260,49 @@ std::vector<std::string> getPaletteHauteDefinition() {
 	};
 }
 
-// Palette Gradients - Dégradés
-std::vector<std::string> getPaletteGradients() {
-	return { "█", "▓", "▒", "░", "▄", "▀", "■", "□", "●", "○", "·", " " };
+// Palette Lettres Seules - Uniquement des lettres majuscules et minuscules
+std::vector<std::string> getPaletteLettresSeules() {
+	return { "M", "W", "N", "H", "K", "Q", "D", "B", "R", "A", "G", "m", "w", "n", "h", "k", "q", "d", "b", "r", "a", "g", "o", "e", "s", "c", "v", "x", "z", "u", "t", "i", "l", "j", " " };
 }
 
-// Palette 2-Bit - Minimaliste (noir et blanc pur)
-std::vector<std::string> getPalette2Bit() {
-	return { "█", " " };
+// Palette Détourage - Supprime le fond blanc (commence par espace)
+std::vector<std::string> getPaletteDetourage() {
+	return { " ", ".", ":", ",", ";", "+", "=", "/", "%", "$", "M", "#" };
+}
+
+// Palette Reflet - Effet miroir/reflet pour les contours
+std::vector<std::string> getPaletteReflet() {
+	return { "◉", "◎", "○", "◦", "•", "·", "˙", "°", "¸", "'", "`", " " };
+}
+
+// Palette Points - Style dithering/tramage avec points
+std::vector<std::string> getPalettePoints() {
+	return { "█", "▓", "▒", "░", "▦", "▣", "▪", "▫", "•", "·", "˙", "·", " " };
+}
+
+// Palette Lignes - Style rétro/Atari avec lignes horizontales
+std::vector<std::string> getPaletteLignes() {
+	return { "█", "▀", "▄", "▐", "▌", "▖", "▗", "▘", "▝", "-", "_", " " };
+}
+
+// Palette Stippling - Technique de pointillisme
+std::vector<std::string> getPaletteStippling() {
+	return { "█", "●", "○", "◦", "•", "∙", "·", "˙", "·", ".", "'", " " };
+}
+
+// Palette Dithering - Tramage classique
+std::vector<std::string> getPaletteDithering() {
+	return { "█", "▓", "▒", "░", "▙", "▟", "▖", "▗", "▘", "▝", "·", " " };
+}
+
+// Palette Minimaliste - Très simple, grandes zones
+std::vector<std::string> getPaletteMinimaliste() {
+	return { "█", "▓", "-", ".", " " };
+}
+
+// Palette Monospace - Caractères de largeur fixe
+std::vector<std::string> getPaletteMonospace() {
+	return { "@", "#", "8", "&", "0", "X", "x", "+", "=", "-", ":", ".", " " };
 }
 
 // ============================================================================
@@ -276,6 +326,8 @@ std::vector<std::string> getPalette2Bit() {
 // - Créer une structure ImageRGB { int largeur, hauteur; vector<RGB> pixels; }
 // - Implémenter genererAsciiArtCouleur() avec codes ANSI
 // - Ajouter option "Mode Couleur" dans l'interface Qt
+
+// -> j'ajoute cette fonctionalité quand j'aurais le temps et surtout la motiv lol
 // ============================================================================
 
 //déf fonction pour lire une pallette externe depuis un fichier
@@ -372,20 +424,6 @@ Parametres passerArguments(int argc, char* argv[]) {
 	}
 
 	return params;
-}
-
-
-// déf de la fonction pour afficher l'aide
-void afficherAide() {
-	std::cout << "Usage :\n"
-		<< "pgm2txt [options]\n"
-		<< "Options :\n"
-		<< "--input fichier    Spécifie le fichier image à convertir\n"
-		<< "--output fichier   Spécifie le nom du fichier texte qui contiendra l'Ascii Art\n"
-		<< "--palette fichier  Spécifie un fichier texte contenant la palette de couleur Ascii\n"
-		<< "--width nombre     Spécifie la largeur max de l'Ascii Art\n"
-		<< "--height nombre    Spécifie la hauteur max de l'Ascii Art\n"
-		<< "--help             Affiche cette aide\n";
 }
 
 // FONCTIONS UTILITAIRES

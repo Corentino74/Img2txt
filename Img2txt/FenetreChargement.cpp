@@ -10,8 +10,8 @@
 
 FenetreChargement::FenetreChargement(QWidget* parent)
     : QWidget(parent)
-    , imageValide(false)
     , imagePreviewActive(false)
+    , imageValide(false)
 {
     // Activer le drag & drop
     setAcceptDrops(true);
@@ -50,7 +50,7 @@ void FenetreChargement::nettoyerFichiersTemporaires()
 
 void FenetreChargement::setupUI()
 {
-    setWindowTitle(QString::fromUtf8("Img2txt - version 3.0"));
+    setWindowTitle(QString::fromUtf8("Img2txt - version 3.5 : PLUS DE PALETTES !"));
     resize(1000, 600);
 
     QVBoxLayout* layoutPrincipal = new QVBoxLayout(this);
@@ -58,7 +58,7 @@ void FenetreChargement::setupUI()
     layoutPrincipal->setContentsMargins(0, 0, 0, 0);
 
     // === TITRE ===
-    QLabel* titre = new QLabel(QString::fromUtf8("Img2txt - version 3.0"));
+    QLabel* titre = new QLabel(QString::fromUtf8("Img2txt V3.5"));
     titre->setAlignment(Qt::AlignCenter);
     titre->setStyleSheet("font-size: 18px; font-weight: bold; padding: 15px; background-color: #2B2B2B; color: white;");
     layoutPrincipal->addWidget(titre);
