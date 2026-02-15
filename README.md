@@ -437,12 +437,58 @@ Img2txt s'inspire des projets ASCII Art classiques tout en apportant :
 
 ## Licence
 
-© 2026 Corentin. Tous droits réservés.
+Disponible dans le fichier [LICENSE](LICENSE)
 
-Ce logiciel utilise des bibliothèques tierces sous licences open source (Qt LGPL, stb Public Domain).
 
----
+## Remerciements
+- **stb_image** : Bibliothèque de chargement d'images de Sean Barrett
+- **Qt Project** : Framework Qt6
 
-**Version** : 4.0  
-**Date** : Février 2026  
-**Contact** : [À compléter si souhaité]
+
+## Contact
+Pour toute question : corentinchitwood@gmail.com
+
+<p align="center">
+  Fait avec amour et beaucoup de caractères ASCII !
+</p>
+
+                              ???_~>i+?-+>l;,,,,,:;;;
+                            +]-?{}]-<>i>>l;,,^^``''`,;
+                          >><_?]_?->!I;;;II:,"^``'''''',
+                        !-<>+-_++~!;,",,:;ll;:,"``````'^;
+                        ;i__<}?+>l;!li<-[(trf/|1>;,^```'`;
+                        :,;!<~--+>+}juXUQ0QJYzvxt]il:``''^
+                        !+|nucvvcJLQ0ZZZO0LJUYcnxr{il;,"^^
+                        i?cQ0OZmZZmwwwwqqmOQCCUcnjt{i;:,:",
+                        l/LZwqdbbbddddddqw0LCCJzrt(?l,,^``"
+                        (LwqqqddddbbdqmQLCQ0QCXj|({+;,"``"l
+                        _Lww0CL0ZZZOLXf{~ii+}}-?1)()+:,"^>~
+                        it1?+  [)xYUn{---[~,Ii+]])\\};l)/]+-
+                         f1~-I,~?/0dJjnvuvunj||rucuj|-+1[j/|[
+                         UcxuurxL0wdUtzJOOZOO00QCYvf|}+)-+\t~
+                         QwdbbbbpOqwYxjXmqppppmQJXn\1]!)fff(
+                        iQpdbpOzQ0qmUXvr(uvJ0QQXnf\){-!}tjj>
+                         r0ZQx)YccYcf]<>)xUXjxcu/){}]+l+f)
+                          nY/\YJvf1{]-1|/fjf\\\u|{}[]~;;
+                           rrf(\)}{}}[[{}}tzXzUx{}[?_!:
+                             vcUUXzYJcnunuzXXvj([[-~ii-<
+                              fcJYzujjuczzYzx\[--+<<+_[-
+                              i[nC0QLLLUYcnt)->i>_??])\
+                               l<1nvuxrxjt{?+i<?]?]1\ff\>
+                                 i--?--++~~+-????}|fjjjt{!
+                                  ixr/)_~_-?--?{(/frxxxj\\)r\!
+                                  nvxrxnxjffffrvYUUUYcnffrLLOmOQv~
+                                 I)CCYununnnnnvYJCLLJYzvxX0OqbbppqZZj+
+                              1whkcJLQCzccvvvczUJCCJYYXCZ0Zbhkbddpddbdpmc]!
+                            OkhkahrzUCLJXccczYYUUJJYJmmZmdhhbkbdddbbbbhhkbbkbC
+                        udahaahhahk/YJJJYccvvczYCZqwwwqbakdkkbdbdbbbkkhhhaao*ooakpO
+                   w*##****ooaaakddpqqqmZmpdqqwwwpkahkkkkkbkdbdkbkbhh**o*#*oooooakp0_
+               xk*####o##M###*oaoabpqwmmwwqpdbkhhbbhhhkkhkkbkbkbkhha**#*#**#**ohahkkbO
+              o#####*#o##M##M######aooo**oakdbbbbhhhhhbhhbbdkbbbbhha#***###M##aka#*ohkd
+           :J##M####**o*##M############***##*aahahhhhbbkkkkbkkkhbaao##oo#####ohbo###okdb
+         IO#######**oo**######**#******#**ooo*o*oaahbkkkhkdkkhhbhao##oao###*abha*##*hwZp
+        i*########*ooo*M#M##****o****oooooooo*###ohhhaaoakkhaakhao*#*oo##*oadhao##*ap0Zb
+       "X*#######oo*ho###M##******oo*oooaoo*##*ookhko**ohko#ohao*###oa*#*oabpho*#*okwZqk
+       |o*##M##*o***aa#####o**#****o*o****###**hkka*##*aka**ooa*##*aao##*akqdo**ooakqwba
+      ;a*ooo##**oho*oa##*##oooo#*ooo*o**###**ohkbao*#*aha**ooa*#**ohh*##ohpmb#oaaoaakdpw
+      {###ooo**ahh*#*oo####oooooo*oo**#*##*ohkdhho*##*hhao*oaooo*aaao*#ohdZqhoooooohpCUq
