@@ -1,5 +1,4 @@
 #pragma once
-
 #include <QtWidgets/QMainWindow>
 #include <QStackedWidget>
 #include "ui_Img2txt_20.h"
@@ -11,11 +10,15 @@ class Img2txt_20 : public QMainWindow
     Q_OBJECT
 
 public:
-    Img2txt_20(QWidget* parent = nullptr);
-    ~Img2txt_20();
+    Img2txt_20(QWidget* parent = nullptr); // Constructeur qui prend un parent optionnel
+    ~Img2txt_20();                           
 
 private slots:
-    void onImageChargee(const ImagePGM& image, const QString& chemin);
+
+    // Slot pour recevoir l'image chargée depuis FenetreChargement
+    void onImageChargee(const ImagePGM& image, const QString& cheminPGM, const QString& cheminOriginal);
+
+    // Slot pour revenir à la fenêtre de chargement
     void onRetourChargement();
 
 private:

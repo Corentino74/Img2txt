@@ -10,25 +10,16 @@
 
 FenetreChargement::FenetreChargement(QWidget* parent)
     : QWidget(parent)
-    , imagePreviewActive(false)
     , imageValide(false)
 {
     // Activer le drag & drop
     setAcceptDrops(true);
-    dossierImages = QDir::currentPath() + "/images";
-    dossierRendus = QDir::currentPath() + "/rendus";
     dossierTemp = creerDossierTemp();
 
-    QDir().mkpath(dossierImages);
-    QDir().mkpath(dossierRendus);
-
     setupUI();
-    chargerListeImages();
 }
 
-FenetreChargement::~FenetreChargement()
-{
-}
+FenetreChargement::~FenetreChargement() {}
 
 // Créer le dossier temporaire pour les PGM
 QString FenetreChargement::creerDossierTemp()
@@ -50,67 +41,53 @@ void FenetreChargement::nettoyerFichiersTemporaires()
 
 void FenetreChargement::setupUI()
 {
-    setWindowTitle(QString::fromUtf8("Img2txt - version 3.5 : PLUS DE PALETTES !"));
-    resize(1000, 600);
+    setWindowTitle(QString::fromUtf8("Img2txt V4.0 - ASCII Art Converter"));
+    resize(900, 650);
 
     QVBoxLayout* layoutPrincipal = new QVBoxLayout(this);
     layoutPrincipal->setSpacing(0);
     layoutPrincipal->setContentsMargins(0, 0, 0, 0);
 
     // === TITRE ===
-    QLabel* titre = new QLabel(QString::fromUtf8("Img2txt V3.5"));
+    QLabel* titre = new QLabel(QString::fromUtf8("Img2txt V4.0"));
     titre->setAlignment(Qt::AlignCenter);
     titre->setStyleSheet("font-size: 18px; font-weight: bold; padding: 15px; background-color: #2B2B2B; color: white;");
     layoutPrincipal->addWidget(titre);
 
-    // === ZONE CENTRALE: Layout horizontal (Liste + Preview) ===
+    // === ZONE CENTRALE: Preview + Aide ===
     QWidget* zoneCentrale = new QWidget();
-    QHBoxLayout* layoutCentral = new QHBoxLayout(zoneCentrale);
-    layoutCentral->setSpacing(0);
-    layoutCentral->setContentsMargins(0, 0, 0, 0);
+    zoneCentrale->setStyleSheet("background-color: #2B2B2B;");
+    QVBoxLayout* layoutCentral = new QVBoxLayout(zoneCentrale);
+    layoutCentral->setSpacing(15);
+    layoutCentral->setContentsMargins(20, 20, 20, 20);
 
-    // --- PANNEAU GAUCHE: Liste d'images ---
-    QWidget* panneauListe = new QWidget();
-    panneauListe->setMinimumWidth(350);
-    panneauListe->setMaximumWidth(450);
-    panneauListe->setStyleSheet("background-color: #3C3F41;");
-    QVBoxLayout* layoutListe = new QVBoxLayout(panneauListe);
+    // Aide inline
+    QLabel* lblAide = new QLabel(QString::fromUtf8(
+        "<b style='color:#4A90E2;'>Guide rapide :</b><br>"
+        "<span style='color:#9E9E9E;'>"
+        "\u2022 Cliquez sur 'Charger' pour s\u00e9lectionner une image<br>"
+        "\u2022 Ou glissez-d\u00e9posez un fichier dans la zone ci-dessous<br>"
+        "\u2022 Formats support\u00e9s : PNG, JPG, JPEG, PGM<br>"
+        "\u2022 Cliquez sur 'Convertir' pour ouvrir la fen\u00eatre de calibrage</span>"
+    ));
+    lblAide->setWordWrap(true);
+    lblAide->setStyleSheet("padding: 15px; background-color: #3C3F41; border-radius: 5px;");
+    layoutCentral->addWidget(lblAide);
 
-    QLabel* titreListe = new QLabel(QString::fromUtf8("Images disponibles dans le dossier 'images'"));
-    titreListe->setStyleSheet("font-weight: bold; color: white; padding: 10px;");
-    layoutListe->addWidget(titreListe);
-
-    listeImages = new QListWidget();
-    listeImages->setSelectionMode(QAbstractItemView::SingleSelection);
-    listeImages->setStyleSheet("background-color: #2B2B2B; color: white; border: none; padding: 5px;");
-    connect(listeImages, &QListWidget::itemDoubleClicked, this, &FenetreChargement::onImageListeClicked);
-    layoutListe->addWidget(listeImages);
-
-    QLabel* instruction = new QLabel(QString::fromUtf8("Double-cliquez pour convertir"));
-    instruction->setStyleSheet("color: #9E9E9E; font-style: italic; padding: 5px;");
-    layoutListe->addWidget(instruction);
-
-    layoutCentral->addWidget(panneauListe);
-
-    // --- PANNEAU DROIT: Preview/Drop zone ---
-    QWidget* panneauPreview = new QWidget();
-    panneauPreview->setStyleSheet("background-color: #2B2B2B;");
-    QVBoxLayout* layoutPreview = new QVBoxLayout(panneauPreview);
-
+    // Zone de preview/drop
     lblPreview = new QLabel();
     lblPreview->setAlignment(Qt::AlignCenter);
     lblPreview->setStyleSheet("border: 2px dashed #4A90E2; background-color: #3C3F41; color: #9E9E9E;");
-    lblPreview->setMinimumSize(400, 400);
+    lblPreview->setMinimumSize(500, 400);
     lblPreview->setScaledContents(false);
-    resetPreview();  // Afficher le texte par défaut
-    layoutPreview->addWidget(lblPreview, 1);
+    resetPreview();
+    layoutCentral->addWidget(lblPreview, 1);
 
-    lblInfo = new QLabel(QString::fromUtf8("Aucune image chargée"));
+    // Info image
+    lblInfo = new QLabel(QString::fromUtf8("Aucune image charg\u00e9e"));
     lblInfo->setStyleSheet("padding: 10px; background-color: #3C3F41; color: white; border-radius: 5px;");
     lblInfo->setAlignment(Qt::AlignCenter);
-    layoutPreview->addWidget(lblInfo);
-
-    layoutCentral->addWidget(panneauPreview, 1);
+    layoutCentral->addWidget(lblInfo);
 
     layoutPrincipal->addWidget(zoneCentrale, 1);
 
@@ -125,16 +102,6 @@ void FenetreChargement::setupUI()
     barreBoutons->setStyleSheet("background-color: #2B2B2B; padding: 10px;");
     QHBoxLayout* layoutBoutons = new QHBoxLayout(barreBoutons);
     layoutBoutons->setSpacing(10);
-
-    // Bouton "?" - Aide
-    btnAide = new QPushButton();
-    btnAide->setIcon(QIcon(":/illustrations/aide.png"));
-    btnAide->setIconSize(QSize(32, 32));
-    btnAide->setMinimumSize(60, 50);
-    btnAide->setToolTip(QString::fromUtf8("Aide"));
-    btnAide->setStyleSheet("QPushButton { background-color: #778aa0; border-radius: 5px; } QPushButton:hover { background-color: #8697a8; }");
-    connect(btnAide, &QPushButton::clicked, this, &FenetreChargement::onAide);
-    layoutBoutons->addWidget(btnAide);
 
     // Bouton "Charger" - Charger une image ou un pgm
     btnCharger = new QPushButton(QString::fromUtf8("  Charger une image ou un pgm"));
@@ -155,8 +122,8 @@ void FenetreChargement::setupUI()
     connect(btnSupprimer, &QPushButton::clicked, this, &FenetreChargement::onSupprimer);
     layoutBoutons->addWidget(btnSupprimer);
 
-    // Bouton "Convertir" - Convertir en texte ASCII
-    btnConvertir = new QPushButton(QString::fromUtf8("  Convertir en texte ASCII =>"));
+    // Bouton "Convertir" - Ouvre FenetreCalibrage
+    btnConvertir = new QPushButton(QString::fromUtf8("  Convertir"));
     btnConvertir->setIcon(QIcon(":/illustrations/box.png"));
     btnConvertir->setIconSize(QSize(32, 32));
     btnConvertir->setMinimumHeight(50);
@@ -174,7 +141,6 @@ void FenetreChargement::resetPreview()
     lblPreview->clear();
     lblPreview->setText(QString::fromUtf8("glissez-déposez votre image ici..."));
     lblPreview->setStyleSheet("border: 2px dashed #4A90E2; background-color: #3C3F41; color: #9E9E9E; font-size: 16px; font-style: italic;");
-    imagePreviewActive = false;
 }
 
 // Afficher la preview de l'image chargée
@@ -195,30 +161,6 @@ void FenetreChargement::afficherPreview()
     QPixmap scaledPixmap = pixmap.scaled(lblPreview->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     lblPreview->setPixmap(scaledPixmap);
     lblPreview->setStyleSheet("border: 2px solid #27AE60; background-color: #2B2B2B;");
-    imagePreviewActive = true;
-}
-
-void FenetreChargement::chargerListeImages()
-{
-    listeImages->clear();
-
-    QDir dir(dossierImages);
-    QStringList filtres;
-    filtres << "*.png" << "*.jpg" << "*.jpeg" << "*.PNG" << "*.JPG" << "*.JPEG";
-
-    QFileInfoList fichiers = dir.entryInfoList(filtres, QDir::Files);
-
-    if (fichiers.isEmpty()) {
-        QListWidgetItem* item = new QListWidgetItem(QString::fromUtf8("Aucune image trouvée dans le dossier 'images'"));
-        item->setFlags(Qt::NoItemFlags);
-        item->setForeground(QColor("#9E9E9E"));
-        listeImages->addItem(item);
-    }
-    else {
-        foreach(const QFileInfo & fichier, fichiers) {
-            listeImages->addItem(fichier.fileName());
-        }
-    }
 }
 
 // Charger une image (PNG/JPG/PGM)
@@ -226,7 +168,7 @@ void FenetreChargement::onChargerPGM()
 {
     QString fichier = QFileDialog::getOpenFileName(this,
         QString::fromUtf8("Sélectionner une image"),
-        dossierImages,
+        QDir::homePath(),
         "Images (*.png *.jpg *.jpeg *.pgm);;Fichiers PGM (*.pgm);;Images PNG/JPG (*.png *.jpg *.jpeg);;Tous les fichiers (*)");
 
     if (fichier.isEmpty()) {
@@ -265,51 +207,6 @@ void FenetreChargement::onChargerPGM()
     }
 }
 
-void FenetreChargement::onImageListeClicked(QListWidgetItem* item)
-{
-    if (!item || item->flags() == Qt::NoItemFlags) {
-        return;
-    }
-
-    QString nomFichier = item->text();
-    QString cheminComplet = dossierImages + "/" + nomFichier;
-
-    convertirEtChargerImage(cheminComplet);
-}
-
-void FenetreChargement::onConvertirManuel()
-{
-    // Cette méthode n'est plus utilisée (fusionnée avec onChargerPGM)
-    onChargerPGM();
-}
-
-// ✨ NOUVEAU: Afficher l'aide
-void FenetreChargement::onAide()
-{
-    QMessageBox::information(this,
-        QString::fromUtf8("Aide - Img2txt 3.0"),
-        QString::fromUtf8(
-            "<h3>Comment utiliser Img2txt ?</h3>"
-            "<p><b>1. Charger une image :</b></p>"
-            "<ul>"
-            "<li>Double-cliquez sur une image de la liste</li>"
-            "<li>Glissez-déposez une image dans la zone de preview</li>"
-            "<li>Cliquez sur 'Charger' pour sélectionner un fichier</li>"
-            "</ul>"
-            "<p><b>2. Convertir :</b></p>"
-            "<ul>"
-            "<li>Une fois l'image chargée, cliquez sur 'Convertir =>'</li>"
-            "<li>Vous accéderez à la fenêtre de calibrage</li>"
-            "</ul>"
-            "<p><b>3. Formats supportés :</b></p>"
-            "<ul>"
-            "<li>PNG, JPG, JPEG (convertis automatiquement)</li>"
-            "<li>PGM (chargement direct)</li>"
-            "</ul>"
-            "<p><b>Astuce :</b> Le drag & drop est le moyen le plus rapide !</p>"
-        ));
-}
-
 // Supprimer l'image chargée
 void FenetreChargement::onSupprimer()
 {
@@ -333,7 +230,7 @@ void FenetreChargement::onSupprimer()
 void FenetreChargement::onConvertir()
 {
     if (imageValide) {
-        emit imagePGMChargee(imageChargee, cheminPGM);
+        emit imagePGMChargee(imageChargee, cheminPGM, cheminImageOriginale);
     }
 }
 
@@ -394,9 +291,7 @@ void FenetreChargement::dragEnterEvent(QDragEnterEvent* event)
     if (event->mimeData()->hasUrls()) {
         event->acceptProposedAction();
         lblPreview->setStyleSheet("border: 2px dashed #27AE60; background-color: #3C3F41; color: #27AE60; font-size: 16px; font-style: italic;");
-        if (!imagePreviewActive) {
-            lblPreview->setText(QString::fromUtf8("Déposez l'image ici !"));
-        }
+        lblPreview->setText(QString::fromUtf8("Déposez l'image ici !"));
     }
 }
 
@@ -424,6 +319,7 @@ void FenetreChargement::dropEvent(QDropEvent* event)
                     afficherPreview();
                     btnSupprimer->setEnabled(true);
                     btnConvertir->setEnabled(true);
+
 
                     lblStatut->setText(QString::fromUtf8("✓ Image PGM chargée par drag & drop"));
                     lblStatut->setStyleSheet("color: #27AE60; font-weight: bold; padding: 10px; background-color: #2B2B2B;");

@@ -1,57 +1,49 @@
 #include "img2txt_20.h"
 
-Img2txt_20::Img2txt_20(QWidget* parent)
-    : QMainWindow(parent)
+// Implémentation de la classe principale de l'application
+// - Gère la navigation entre les différentes fenêtres
+Img2txt_20::Img2txt_20(QWidget* parent) : QMainWindow(parent)
     , fenetreCalibrage(nullptr)
 {
-    ui.setupUi(this);
+    ui.setupUi(this); 
 
-    setWindowTitle("Img2Txt - Convertisseur d'images en ASCII Art");
-    resize(800, 600);
+    setWindowTitle("Img2txt - Convertisseur d'images en ASCII Art");
+    resize(800, 700);
 
-    // Créer le QStackedWidget pour gerer les fenêtres
-    stackedWidget = new QStackedWidget(this);
+    stackedWidget = new QStackedWidget(this); // Widget pour empiler les différentes fenêtres
     setCentralWidget(stackedWidget);
 
-    // Creer et ajouter la fenetre de chargement
     fenetreChargement = new FenetreChargement(this);
     stackedWidget->addWidget(fenetreChargement);
 
-    // Connecter le signal de l'image chargee
     connect(fenetreChargement, &FenetreChargement::imagePGMChargee,
         this, &Img2txt_20::onImageChargee);
 
-    // Afficher la fenetre de chargement
     stackedWidget->setCurrentWidget(fenetreChargement);
 }
 
-Img2txt_20::~Img2txt_20()
-{
-}
+// destructeur, inutile 
+Img2txt_20::~Img2txt_20() {}
 
-void Img2txt_20::onImageChargee(const ImagePGM& image, const QString& chemin)
+// Slot pour recevoir l'image chargée depuis FenetreChargement
+void Img2txt_20::onImageChargee(const ImagePGM& image, const QString& cheminPGM, const QString& cheminOriginal)
 {
-    // Supprimer l'ancienne fenetre de calibrage si elle existe
+    // Si une fenêtre de calibrage existe déjà, la supprimer avant d'en créer une nouvelle
     if (fenetreCalibrage != nullptr) {
         stackedWidget->removeWidget(fenetreCalibrage);
         delete fenetreCalibrage;
     }
 
-    // Cr�er une nouvelle fen�tre de calibrage avec l'image charg�e
-    fenetreCalibrage = new FenetreCalibrage(image, chemin, this);
+    fenetreCalibrage = new FenetreCalibrage(image, cheminPGM, cheminOriginal, this);
     stackedWidget->addWidget(fenetreCalibrage);
 
-    // Connecter le signal de retour
     connect(fenetreCalibrage, &FenetreCalibrage::retourChargement,
         this, &Img2txt_20::onRetourChargement);
 
-    // Afficher la fen�tre de calibrage
     stackedWidget->setCurrentWidget(fenetreCalibrage);
 }
 
 void Img2txt_20::onRetourChargement()
 {
-    // Retourner � la fen�tre de chargement
     stackedWidget->setCurrentWidget(fenetreChargement);
 }
-

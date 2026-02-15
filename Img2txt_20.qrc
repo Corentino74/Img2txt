@@ -1,10 +1,9 @@
 <RCC>
     <qresource prefix="/">
-        <file>illustrations/aide.png</file>
         <file>illustrations/folder.png</file>
         <file>illustrations/bin.png</file>
         <file>illustrations/box.png</file>
         <file>illustrations/download.png</file>
-        <file>illustrations/collapse.png</file>
+        <file>illustrations/app_icon.png</file>
     </qresource>
 </RCC>

@@ -1,0 +1,40 @@
+// ====================================
+// RESSOURCES WINDOWS POUR IMG2TXT
+// ====================================
+// Ce fichier contient l'icône et les métadonnées de l'application
+
+#include <windows.h>
+
+// Icône de l'application (IDI_ICON1 = 101 par convention)
+// Le fichier app_icon.ico doit être créé à la racine du projet
+IDI_ICON1 ICON "app_icon.ico"
+
+// Métadonnées de version (affichées dans les propriétés Windows)
+VS_VERSION_INFO VERSIONINFO
+    FILEVERSION     4,0,0,0          // Version du fichier (Major,Minor,Patch,Build)
+    PRODUCTVERSION  4,0,0,0          // Version du produit
+    FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+    FILEFLAGS       0x0L             // 0 = Release, VS_FF_DEBUG pour Debug
+    FILEOS          VOS_NT_WINDOWS32 // Windows 32/64-bit
+    FILETYPE        VFT_APP          // Application
+    FILESUBTYPE     VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"  // Langue: Français (0x0409 = US English, 0x040C = French)
+        BEGIN
+            VALUE "CompanyName",      "Corentin\0"
+            VALUE "FileDescription",  "Convertisseur d'images en ASCII Art\0"
+            VALUE "FileVersion",      "4.0.0.0\0"
+            VALUE "InternalName",     "Img2txt\0"
+            VALUE "LegalCopyright",   "Copyright (C) 2026 Corentin\0"
+            VALUE "OriginalFilename", "Img2txt_v4.0.exe\0"
+            VALUE "ProductName",      "Img2txt - ASCII Art Converter\0"
+            VALUE "ProductVersion",   "4.0.0.0\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1252  // US English, Multilingual charset
+    END
+END

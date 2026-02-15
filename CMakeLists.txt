@@ -1,41 +1,39 @@
-# ====================================
-# CONFIGURATION MINIMALE DU PROJET
-# ====================================
+# CmakeLists.txt - Configuration de la compilation multi-plateformes pour Img2txt
 cmake_minimum_required(VERSION 3.16)
-project(Img2txt_2_0 VERSION 2.0 LANGUAGES CXX)
+
+# Versionnage et métadonnées de l'application
+set(APP_VERSION_MAJOR 4)
+set(APP_VERSION_MINOR 0)
+set(APP_VERSION "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}")
+set(APP_NAME "Img2txt")
+set(APP_AUTHOR "Corentin Chitwood")
+set(APP_COPYRIGHT "Copyright (C) 2026 ${APP_AUTHOR}")
+set(APP_DESCRIPTION "Convertisseur d'images en ASCII Art")
+
+project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 
 # Standard C++17 obligatoire
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# ====================================
-# OPTIONS DE COMPILATION
-# ====================================
-if(MSVC)
+if(MSVC) #compilation sous Visual Studio
     add_compile_options(/W4 /utf-8)
-else()
+else() 
     add_compile_options(-Wall -Wextra)
 endif()
 
-# ====================================
 # CONFIGURATION Qt (AUTOMOC/AUTOUIC/AUTORCC)
-# ====================================
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR}) # Permet de trouver les fichiers .ui à la racine
 
-# IMPORTANT : Dire à CMake où chercher les fichiers .ui
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_SOURCE_DIR})
-
-# Recherche de Qt6 uniquement
+# Recherche des composants Qt6 nécessaires 
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
-message(STATUS "✓ Qt6 trouvé : ${Qt6_VERSION}")
 qt_standard_project_setup()
 
-# ====================================
 # FICHIERS SOURCES DU PROJET
-# ====================================
 set(PROJECT_SOURCES
     main.cpp
     Img2txt/img2txt_20.cpp
@@ -51,7 +49,6 @@ set(PROJECT_HEADERS
     Img2txt/fonctions.h
 )
 
-# Fichiers UI et QRC à la RACINE
 set(PROJECT_UI
     ${CMAKE_CURRENT_SOURCE_DIR}/Img2txt_20.ui
 )
@@ -60,53 +57,35 @@ set(PROJECT_RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Img2txt_20.qrc
 )
 
-# ====================================
-# CRÉATION DE L'EXÉCUTABLE
-# ====================================
-qt6_add_executable(${PROJECT_NAME}
+# CRÉATION DE L'EXÉCUTABLE // oh boy, my favorite :D 
+set(EXECUTABLE_NAME "${APP_NAME}_V${APP_VERSION}")
+
+# Création de l'exécutable à partir des sources, headers, UI et ressources
+qt6_add_executable(${EXECUTABLE_NAME}
     ${PROJECT_SOURCES}
     ${PROJECT_HEADERS}
     ${PROJECT_UI}
     ${PROJECT_RESOURCES}
 )
-
-# ====================================
-# LIAISON AVEC Qt
-# ====================================
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt6::Widgets)
-
-# ====================================
-# RÉPERTOIRES D'INCLUSION
-# ====================================
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}  # ← Permet de trouver stb_image.h à la racine
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE Qt6::Widgets)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}  # Permet de trouver stb_image.h à la racine
     ${CMAKE_CURRENT_SOURCE_DIR}/Img2txt
 )
 
-# ====================================
-# CONFIGURATION WINDOWS (Pas de console en Release)
-# ====================================
+# Configuration pour windows // je vous jure passez sur Linux
 if(WIN32)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
+    set_target_properties(${EXECUTABLE_NAME} PROPERTIES
         WIN32_EXECUTABLE $<CONFIG:Release>
+    )
+    
+    # Ajouter le fichier de ressources Windows (.rc) pour l'icône et les métadonnées
+    target_sources(${EXECUTABLE_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/app_resources.rc
     )
 endif()
 
-# ====================================
-# MESSAGES DE DIAGNOSTIC
-# ====================================
-message(STATUS "========================================")
-message(STATUS "  Img2txt 2.0 - Configuration")
-message(STATUS "========================================")
-message(STATUS "Qt version: ${Qt6_VERSION}")
-message(STATUS "Compilateur: ${CMAKE_CXX_COMPILER_ID}")
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-message(STATUS "Fichier UI: ${PROJECT_UI}")
-message(STATUS "========================================")
-
-# ====================================
 # DÉPLOIEMENT AUTOMATIQUE (Windows)
-# ====================================
 if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
     # Trouver windeployqt
     find_program(WINDEPLOYQT_EXECUTABLE 
@@ -116,58 +95,64 @@ if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
     
     if(WINDEPLOYQT_EXECUTABLE)
         # Déployer après la compilation
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
             COMMAND ${WINDEPLOYQT_EXECUTABLE} 
                 --no-translations 
                 --no-system-d3d-compiler 
                 --no-opengl-sw
-                $<TARGET_FILE:${PROJECT_NAME}>
+                $<TARGET_FILE:${EXECUTABLE_NAME}>
             COMMENT "Déploiement des dépendances Qt..."
         )
     endif()
 endif()
 
-# ====================================
-# INSTALLATION (pour Linux AppImage)
-# ====================================
-install(TARGETS ${PROJECT_NAME}
+# INSTALLATION (Linux AppImage)
+install(TARGETS ${EXECUTABLE_NAME}
     RUNTIME DESTINATION bin
 )
 
 # Installer les fichiers de ressources si nécessaire
 install(FILES ${PROJECT_UI} ${PROJECT_RESOURCES}
-    DESTINATION share/${PROJECT_NAME}
+    DESTINATION share/${EXECUTABLE_NAME}
 )
 
-# ====================================
-# NETTOYAGE AUTOMATIQUE POST-BUILD
-# ====================================
+# NETTOYAGE AUTOMATIQUE POST-BUILD ET OPTI (si Release sur Windows)
 if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        # Supprimer les fichiers de débogage
-        COMMAND ${CMAKE_COMMAND} -E remove_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/.qt"
-        COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:${PROJECT_NAME}>/*.pdb"
-        COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:${PROJECT_NAME}>/*.ilk"
-        
-        COMMENT "Nettoyage des fichiers inutiles..."
-        VERBATIM
-    )
-endif()
 
-# ====================================
-# OPTIONS D'OPTIMISATION POUR MSVC EN RELEASE
-# ====================================
-if(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
     # Optimisations agressives
-    target_compile_options(${PROJECT_NAME} PRIVATE 
+    target_compile_options(${EXECUTABLE_NAME} PRIVATE 
         /O2        # Optimisation max
         /GL        # Link-time optimization
         /Gy        # Function-level linking
     )
     
-    target_link_options(${PROJECT_NAME} PRIVATE
+    target_link_options(${EXECUTABLE_NAME} PRIVATE
         /LTCG      # Link-time code generation
         /OPT:REF   # Éliminer code mort
         /OPT:ICF   # Fusionner fonctions identiques
     )
+
+    add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+        # Supprimer les fichiers de débogage
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/.qt"
+        COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/*.pdb"
+        COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/*.ilk"
+        VERBATIM
+    )
 endif()
+
+# OPTIMISATIONS DE COMPILATION (Release sur Windows)
+# if(MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
+#    # Optimisations agressives
+#    target_compile_options(${EXECUTABLE_NAME} PRIVATE 
+#         /O2        # Optimisation max
+#         /GL        # Link-time optimization
+#         /Gy        # Function-level linking
+#     )
+    
+#     target_link_options(${EXECUTABLE_NAME} PRIVATE
+#         /LTCG      # Link-time code generation
+#         /OPT:REF   # Éliminer code mort
+#         /OPT:ICF   # Fusionner fonctions identiques
+#     )
+# endif()

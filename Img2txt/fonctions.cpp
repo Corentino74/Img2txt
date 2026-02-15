@@ -1,17 +1,11 @@
-// ============================================================================
-// Fichier: fonctions.cpp
-// Description: Implémentation des fonctions de conversion d'images en ASCII
-// ============================================================================
-
+// Implémentation des fonctions de conversion d'images en ASCII
 #include "fonctions.h"
 #include <iostream>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-// Fonction pour gestion png
-//
-// Fonction utilitaire pour obtenir l'extension d'un fichier en minuscules
+
+// Obtenir l'extension d'un fichier en minuscules
 static std::string obtenirExtension(const std::string& chemin) {
 	const auto pos = chemin.find_last_of('.');
 	if (pos == std::string::npos) return {};
@@ -20,8 +14,8 @@ static std::string obtenirExtension(const std::string& chemin) {
 		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 	return ext;
 }
-//
-// Fonction générique pour charger une image (PGM, PNG, JPG)
+
+// Fonction générique pour charger une image (PGM, PNG, JPG, JPEG)	// ajout de webp ?
 ImagePGM chargerImage(const std::string& chemin) {
 	const std::string ext = obtenirExtension(chemin);
 
@@ -131,8 +125,6 @@ void sauvegarderEnPGM(const ImagePGM& image, const std::string& nomFichier) {
 
 // - Gestion ASCII ART 
 // Transformation de l'image en ASCII art et retour sous forme de chaîne de caractères
-// ⚠️ CORRECTION RATIO : Les caractères ASCII ont un ratio hauteur/largeur d'environ 2:1
-// Pour compenser, on saute une ligne sur deux lors de la conversion
 std::string genererAsciiArt(const ImagePGM& image, const std::vector<std::string>& palette) { // prend en entrée une structure ImagePGM et une palette
 	std::ostringstream oss;										// utilisation d'un flux de sortie en mémoire pour construire la chaîne de caractères
 	uint8_t pixel;
@@ -141,7 +133,7 @@ std::string genererAsciiArt(const ImagePGM& image, const std::vector<std::string
 
 	// Algorithme de conversion avec correction du ratio
 	// On parcourt l'image en sautant une ligne sur deux (step = 2) pour compenser le ratio 2:1 des caractères
-	for (int y = 0; y < image.hauteur; y += 2) {				// ⚠️ STEP = 2 pour corriger l'étirement vertical
+	for (int y = 0; y < image.hauteur; y += 2) {				// corriger l'étirement vertical
 		for (int x = 0; x < image.largeur; ++x) {				// boucle sur les colonnes de l'image
 			pixel = image.pixels[y * image.largeur + x];		// récupération de la valeur du pixel à la position (x, y) courante	
 			index = (pixel * (paletteSize - 1)) / 255;			// calcul de l'index dans la palette en fonction de la valeur du pixel (0-255)
@@ -185,7 +177,6 @@ ImagePGM inverserCouleurs(const ImagePGM& image) {
 }
 
 //GESTIONS DES PALETTES	
-// ℹ️ Toutes les palettes sont ordonnées du plus foncé au plus clair
 
 // Palette Normale (anciennement Défaut)
 std::vector<std::string> getPaletteNormale() {
@@ -305,31 +296,6 @@ std::vector<std::string> getPaletteMonospace() {
 	return { "@", "#", "8", "&", "0", "X", "x", "+", "=", "-", ":", ".", " " };
 }
 
-// ============================================================================
-// 🎨 SECTION MODE COULEUR (Préparation future)
-// ============================================================================
-// Pour implémenter le mode couleur, il faudrait :
-// 1. Stocker l'image en RGB au lieu de niveaux de gris
-// 2. Créer une nouvelle fonction genererAsciiArtCouleur() qui utilise des codes ANSI
-// 3. Ajouter des palettes de couleurs ANSI (16, 256 couleurs)
-//
-// Exemple de codes ANSI pour couleurs :
-// - 16 couleurs : \033[38;5;Xm où X = 0-15
-// - 256 couleurs : \033[38;5;Xm où X = 0-255
-// - RGB : \033[38;2;R;G;Bm
-//
-// La palette de blocs serait PARFAITE pour du pixel art en couleur !
-// Exemple : █ en couleur = pixel parfait
-//
-// Complexité estimée : Moyenne
-// - Modifier chargerImage() pour garder les données RGB
-// - Créer une structure ImageRGB { int largeur, hauteur; vector<RGB> pixels; }
-// - Implémenter genererAsciiArtCouleur() avec codes ANSI
-// - Ajouter option "Mode Couleur" dans l'interface Qt
-
-// -> j'ajoute cette fonctionalité quand j'aurais le temps et surtout la motiv lol
-// ============================================================================
-
 //déf fonction pour lire une pallette externe depuis un fichier
 std::vector<std::string> lirePalette(const std::string& nomFichier) {
 	std::ifstream fichier(nomFichier);
@@ -438,3 +404,579 @@ int calculerMoyenne(const std::vector<uint8_t>& pixels, int debut, int fin) {
 	}
 	return somme / (fin - debut);
 }
+
+// == SECTION SUPPORT COULEUR (V4.0) ==
+
+// Chargement d'image en mode couleur (conserve RGB)
+Image chargerImageCouleur(const std::string& chemin, bool conserverCouleur) {
+	const std::string ext = obtenirExtension(chemin);
+	
+	// Si c'est un PGM, charger en monochrome
+	if (ext == "pgm") {
+		ImagePGM pgm = lireFichierPGM(chemin);
+		return Image::fromImagePGM(pgm);
+	}
+	
+	// Charger avec stb_image
+	int w = 0, h = 0, comp = 0;
+	unsigned char* data = stbi_load(chemin.c_str(), &w, &h, &comp, 0);
+	
+	if (!data) {
+		throw std::runtime_error("Impossible de charger l'image : " + chemin);
+	}
+	
+	Image img;
+	img.largeur = w;
+	img.hauteur = h;
+	img.estCouleur = conserverCouleur;
+	
+	if (conserverCouleur) {
+		// Stocker en RGB
+		img.pixelsRGB.resize(static_cast<size_t>(w) * static_cast<size_t>(h));
+		
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				const int idx = (y * w + x) * comp;
+				uint8_t r = 0, g = 0, b = 0;
+				
+				if (comp == 1) {
+					r = g = b = data[idx];
+				} else if (comp == 2) {
+					r = g = b = data[idx];
+				} else if (comp >= 3) {
+					r = data[idx];
+					g = data[idx + 1];
+					b = data[idx + 2];
+				}
+				
+				img.pixelsRGB[y * w + x] = std::make_tuple(r, g, b);
+			}
+		}
+	} else {
+		// Convertir en niveaux de gris
+		img.pixelsGris.resize(static_cast<size_t>(w) * static_cast<size_t>(h));
+		
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				const int idx = (y * w + x) * comp;
+				uint8_t gray = 0;
+				
+				if (comp == 1) {
+					gray = data[idx];
+				} else if (comp == 2) {
+					gray = data[idx];
+				} else if (comp >= 3) {
+					const uint8_t r = data[idx];
+					const uint8_t g = data[idx + 1];
+					const uint8_t b = data[idx + 2];
+					gray = static_cast<uint8_t>(0.299 * r + 0.587 * g + 0.114 * b);
+				}
+				
+				img.pixelsGris[y * w + x] = gray;
+			}
+		}
+	}
+	
+	stbi_image_free(data);
+	return img;
+}
+
+// Calcul de la luminosité d'une couleur RGB (formule ITU-R BT.709)
+float calculerLuminosite(uint8_t r, uint8_t g, uint8_t b) {
+	return (0.2126f * r + 0.7152f * g + 0.0722f * b) / 255.0f;
+}
+
+// Trouver la couleur la plus proche dans une palette (distance euclidienne RGB)
+int trouverCouleurProche(uint8_t r, uint8_t g, uint8_t b, const PaletteCouleur& palette) {
+	if (palette.couleurs.empty()) {
+		return 0;
+	}
+	
+	int minDist = INT_MAX;
+	int indexMin = 0;
+	
+	for (size_t i = 0; i < palette.couleurs.size(); ++i) {
+		const auto& c = palette.couleurs[i];
+		int dr = r - c.r;
+		int dg = g - c.g;
+		int db = b - c.b;
+		int dist = dr * dr + dg * dg + db * db;
+		
+		if (dist < minDist) {
+			minDist = dist;
+			indexMin = static_cast<int>(i);
+		}
+	}
+	
+	return indexMin;
+}
+
+// Palette 8 couleurs ANSI de base
+PaletteCouleur getPaletteCouleur8() {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::COULEUR_8;
+	palette.nom = "8 couleurs ANSI";
+	
+	palette.couleurs = {
+		CouleurRGB(0, 0, 0, "Noir"),
+		CouleurRGB(170, 0, 0, "Rouge"),
+		CouleurRGB(0, 170, 0, "Vert"),
+		CouleurRGB(170, 85, 0, "Jaune"),
+		CouleurRGB(0, 0, 170, "Bleu"),
+		CouleurRGB(170, 0, 170, "Magenta"),
+		CouleurRGB(0, 170, 170, "Cyan"),
+		CouleurRGB(170, 170, 170, "Blanc")
+	};
+	
+	palette.caracteres = {
+		"█", "@", "#", "S", "%", "*", "+", "."
+	};
+	
+	return palette;
+}
+
+// Palette 16 couleurs ANSI (8 + brillantes)
+PaletteCouleur getPaletteCouleur16() {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::COULEUR_16;
+	palette.nom = "16 couleurs ANSI";
+	
+	palette.couleurs = {
+		// Couleurs normales
+		CouleurRGB(0, 0, 0, "Noir"),
+		CouleurRGB(170, 0, 0, "Rouge"),
+		CouleurRGB(0, 170, 0, "Vert"),
+		CouleurRGB(170, 85, 0, "Jaune"),
+		CouleurRGB(0, 0, 170, "Bleu"),
+		CouleurRGB(170, 0, 170, "Magenta"),
+		CouleurRGB(0, 170, 170, "Cyan"),
+		CouleurRGB(170, 170, 170, "Gris"),
+		// Couleurs brillantes
+		CouleurRGB(85, 85, 85, "Gris Foncé"),
+		CouleurRGB(255, 85, 85, "Rouge Vif"),
+		CouleurRGB(85, 255, 85, "Vert Vif"),
+		CouleurRGB(255, 255, 85, "Jaune Vif"),
+		CouleurRGB(85, 85, 255, "Bleu Vif"),
+		CouleurRGB(255, 85, 255, "Magenta Vif"),
+		CouleurRGB(85, 255, 255, "Cyan Vif"),
+		CouleurRGB(255, 255, 255, "Blanc")
+	};
+	
+	palette.caracteres = {
+		"█", "▓", "▒", "░", "@", "#", "S", "%",
+		"?", "*", "+", "=", "-", ":", ".", " "
+	};
+	
+	return palette;
+}
+
+// Palette 1 couleur personnalisée (RGB)
+PaletteCouleur getPaletteCouleur1(uint8_t r, uint8_t g, uint8_t b) {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::COULEUR_8;
+	palette.nom = "Couleur unique";
+	
+	palette.couleurs.push_back(CouleurRGB(r, g, b, "Custom"));
+	
+	palette.caracteres = {
+		"█", "▓", "▒", "░", "@", "#", "S", "%",
+		"?", "*", "+", "=", "-", ":", ".", " "
+	};
+	
+	return palette;
+}
+
+// Palette 32 couleurs (ANSI 16 + extensions)
+PaletteCouleur getPaletteCouleur32() {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::COULEUR_16;
+	palette.nom = "32 couleurs";
+	
+	// Récupérer les 16 de base
+	auto p16 = getPaletteCouleur16();
+	palette.couleurs = p16.couleurs;
+	
+	// Ajouter 16 couleurs intermédiaires
+	palette.couleurs.push_back(CouleurRGB(128,   0,   0, "Maroon"));
+	palette.couleurs.push_back(CouleurRGB(139,  69,  19, "SaddleBrown"));
+	palette.couleurs.push_back(CouleurRGB(128, 128,   0, "Olive"));
+	palette.couleurs.push_back(CouleurRGB(  0, 100,   0, "DarkGreen"));
+	palette.couleurs.push_back(CouleurRGB( 72,  61, 139, "DarkSlateBlue"));
+	palette.couleurs.push_back(CouleurRGB( 47,  79,  79, "DarkSlateGray"));
+	palette.couleurs.push_back(CouleurRGB(  0, 128, 128, "Teal"));
+	palette.couleurs.push_back(CouleurRGB( 70, 130, 180, "SteelBlue"));
+	palette.couleurs.push_back(CouleurRGB(255, 140,   0, "DarkOrange"));
+	palette.couleurs.push_back(CouleurRGB(255, 215,   0, "Gold"));
+	palette.couleurs.push_back(CouleurRGB(173, 255,  47, "GreenYellow"));
+	palette.couleurs.push_back(CouleurRGB(  0, 255, 127, "SpringGreen"));
+	palette.couleurs.push_back(CouleurRGB(  0, 191, 255, "DeepSkyBlue"));
+	palette.couleurs.push_back(CouleurRGB(138,  43, 226, "BlueViolet"));
+	palette.couleurs.push_back(CouleurRGB(255,  20, 147, "DeepPink"));
+	palette.couleurs.push_back(CouleurRGB(255, 182, 193, "LightPink"));
+	
+	palette.caracteres = {
+		"█", "▓", "▒", "░", "@", "#", "S", "%",
+		"?", "*", "+", "=", "-", ":", ".", " "
+	};
+	
+	return palette;
+}
+
+// Palette 64 couleurs (cube RGB réduit - coûteux en calcul)
+PaletteCouleur getPaletteCouleur64() {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::COULEUR_256;
+	palette.nom = "64 couleurs (calcul intensif)";
+	
+	// Cube 4x4x4 = 64 couleurs
+	for (int r = 0; r < 4; ++r) {
+		for (int g = 0; g < 4; ++g) {
+			for (int b = 0; b < 4; ++b) {
+				uint8_t rv = static_cast<uint8_t>(r * 85);  // 0, 85, 170, 255
+				uint8_t gv = static_cast<uint8_t>(g * 85);
+				uint8_t bv = static_cast<uint8_t>(b * 85);
+				palette.couleurs.push_back(CouleurRGB(rv, gv, bv));
+			}
+		}
+	}
+	
+	palette.caracteres = {
+		"█", "▓", "▒", "░", "@", "#", "S", "%",
+		"?", "*", "+", "=", "-", ":", ".", " "
+	};
+	
+	return palette;
+}
+
+// Palette 128 couleurs (cube RGB moyen - très coûteux)
+PaletteCouleur getPaletteCouleur128() {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::COULEUR_256;
+	palette.nom = "128 couleurs (très coûteux)";
+	
+	// ANSI 16 de base
+	auto p16 = getPaletteCouleur16();
+	palette.couleurs = p16.couleurs;
+	
+	// Cube 4x4x4 supplémentaire
+	for (int r = 0; r < 4; ++r) {
+		for (int g = 0; g < 4; ++g) {
+			for (int b = 0; b < 4; ++b) {
+				uint8_t rv = static_cast<uint8_t>(r * 85);
+				uint8_t gv = static_cast<uint8_t>(g * 85);
+				uint8_t bv = static_cast<uint8_t>(b * 85);
+				palette.couleurs.push_back(CouleurRGB(rv, gv, bv));
+			}
+		}
+	}
+	
+	// Niveaux de gris étendus (16 nuances)
+	for (int i = 0; i < 16; ++i) {
+		uint8_t gray = static_cast<uint8_t>(i * 17);  // 0, 17, 34..., 255
+		palette.couleurs.push_back(CouleurRGB(gray, gray, gray));
+	}
+	
+	// Couleurs intermédiaires supplémentaires
+	for (int r = 1; r < 4; r += 2) {
+		for (int g = 1; g < 4; g += 2) {
+			for (int b = 1; b < 4; b += 2) {
+				uint8_t rv = static_cast<uint8_t>(r * 42);  // Demi-tons
+				uint8_t gv = static_cast<uint8_t>(g * 42);
+				uint8_t bv = static_cast<uint8_t>(b * 42);
+				palette.couleurs.push_back(CouleurRGB(rv, gv, bv));
+			}
+		}
+	}
+	
+	palette.caracteres = {
+		"█", "▓", "▒", "░", "@", "#", "S", "%",
+		"?", "*", "+", "=", "-", ":", ".", " "
+	};
+	
+	return palette;
+}
+
+// Palette 256 couleurs xterm (simplifiée pour performance)
+PaletteCouleur getPaletteCouleur256() {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::COULEUR_256;
+	palette.nom = "256 couleurs xterm";
+	
+	// 16 couleurs ANSI de base
+	auto p16 = getPaletteCouleur16();
+	palette.couleurs = p16.couleurs;
+	
+	// Cube de couleurs 6x6x6 (216 couleurs)
+	for (int r = 0; r < 6; ++r) {
+		for (int g = 0; g < 6; ++g) {
+			for (int b = 0; b < 6; ++b) {
+				uint8_t rv = r * 51;
+				uint8_t gv = g * 51;
+				uint8_t bv = b * 51;
+				palette.couleurs.push_back(CouleurRGB(rv, gv, bv));
+			}
+		}
+	}
+	
+	// Niveaux de gris (24 nuances)
+	for (int i = 0; i < 24; ++i) {
+		uint8_t gray = static_cast<uint8_t>(8 + i * 10);
+		palette.couleurs.push_back(CouleurRGB(gray, gray, gray));
+	}
+	
+	// Caractères variés
+	palette.caracteres = {
+		"█", "▓", "▒", "░", "▄", "▀", "■", "□",
+		"●", "○", "@", "#", "S", "%", "?", "*",
+		"+", "=", "-", ":", ".", " "
+	};
+	
+	return palette;
+}
+
+// True Color (utilise quantification simple)
+PaletteCouleur getPaletteTrueColor() {
+	PaletteCouleur palette;
+	palette.mode = ModeRendu::TRUE_COLOR;
+	palette.nom = "True Color (16M)";
+	
+	// Pour True Color, on n'a pas besoin de palette prédéfinie
+	// Les couleurs seront encodées directement en RGB
+	palette.caracteres = {
+		"█", "▓", "▒", "░", "@", "#", "S", "%",
+		"?", "*", "+", ":", ".", " "
+	};
+	
+	return palette;
+}
+
+// Génération ASCII art couleur
+std::string genererAsciiArtCouleur(const Image& image, const PaletteCouleur& palette) {
+	if (!image.estCouleur) {
+		throw std::runtime_error("L'image doit être en mode couleur");
+	}
+	
+	std::stringstream result;
+	
+	// Saut d'une ligne sur deux pour compenser le ratio 2:1 des caractères
+	for (int y = 0; y < image.hauteur; y += 2) {
+		for (int x = 0; x < image.largeur; ++x) {
+			auto [r, g, b] = image.pixelsRGB[y * image.largeur + x];
+			
+			// Calculer la luminosité pour choisir le caractère
+			float lum = calculerLuminosite(r, g, b);
+			int charIndex = static_cast<int>(lum * (palette.caracteres.size() - 1));
+			charIndex = std::min(charIndex, static_cast<int>(palette.caracteres.size()) - 1);
+			
+			// Trouver la couleur la plus proche
+			int couleurIndex = 0;
+			if (palette.mode != ModeRendu::TRUE_COLOR) {
+				couleurIndex = trouverCouleurProche(r, g, b, palette);
+				couleurIndex = std::min(couleurIndex, static_cast<int>(palette.couleurs.size()) - 1);
+			}
+			
+			// Stocker les infos (on formatte plus tard selon le format)
+			result << palette.caracteres[charIndex];
+		}
+		result << "\n";
+	}
+	
+	return result.str();
+}
+
+// Génération ASCII art mono-caractère (mode "Couleur 1 cara")
+std::string genererAsciiArtCouleurMonoCaractere(const Image& image, const PaletteCouleur& /* palette non utilisée ici, erreur sans ce commentaire ???s*/, const std::string& caractere) {
+	if (!image.estCouleur) {
+		throw std::runtime_error("L'image doit être en mode couleur");
+	}
+	
+	// Utiliser un espace si caractère vide
+	std::string charUtilise = caractere.empty() ? " " : caractere;
+	
+	std::stringstream result;
+	
+	// Saut d'une ligne sur deux pour compenser le ratio 2:1 des caractères
+	for (int y = 0; y < image.hauteur; y += 2) {
+		for (int x = 0; x < image.largeur; ++x) {
+			// Utiliser toujours le même caractère, seule la couleur change
+			result << charUtilise;
+		}
+		result << "\n";
+	}
+	
+	return result.str();
+}
+
+// Export en HTML avec couleurs
+void sauvegarderAsciiArtHTML(const Image& image, const PaletteCouleur& palette, 
+                              const std::string& nomFichier, bool fondNoir) {
+	if (!image.estCouleur) {
+		throw std::runtime_error("L'image doit être en mode couleur pour export HTML");
+	}
+	
+	std::ofstream fichier(nomFichier);
+	if (!fichier.is_open()) {
+		throw std::runtime_error("Impossible d'ouvrir le fichier : " + nomFichier);
+	}
+	
+	// En-tête HTML
+	fichier << "<!DOCTYPE html>\n";
+	fichier << "<html>\n<head>\n";
+	fichier << "    <meta charset=\"UTF-8\">\n";
+	fichier << "    <title>ASCII Art - " << palette.nom << "</title>\n";
+	fichier << "    <style>\n";
+	fichier << "        body {\n";
+	fichier << "            background: " << (fondNoir ? "#000000" : "#FFFFFF") << ";\n";
+	fichier << "            margin: 0;\n";
+	fichier << "            padding: 20px;\n";
+	fichier << "            display: flex;\n";
+	fichier << "            justify-content: center;\n";
+	fichier << "            align-items: center;\n";
+	fichier << "            min-height: 100vh;\n";
+	fichier << "        }\n";
+	fichier << "        pre {\n";
+	fichier << "            font-family: 'Courier New', 'Consolas', monospace;\n";
+	fichier << "            font-size: 8px;\n";
+	fichier << "            line-height: 8px;\n";
+	fichier << "            letter-spacing: 0;\n";
+	fichier << "            margin: 0;\n";
+	fichier << "            white-space: pre;\n";
+	fichier << "        }\n";
+	fichier << "    </style>\n";
+	fichier << "</head>\n<body>\n<pre>";
+	
+	// Génération du contenu avec couleurs
+	// Saut d'une ligne sur deux pour compenser le ratio 2:1 des caractères
+	for (int y = 0; y < image.hauteur; y += 2) {
+		for (int x = 0; x < image.largeur; ++x) {
+			auto [r, g, b] = image.pixelsRGB[y * image.largeur + x];
+			
+			// Calculer luminosité pour caractère
+			float lum = calculerLuminosite(r, g, b);
+			int charIndex = static_cast<int>(lum * (palette.caracteres.size() - 1));
+			charIndex = std::min(charIndex, static_cast<int>(palette.caracteres.size()) - 1);
+			
+			// Déterminer la couleur
+			uint8_t cr = r, cg = g, cb = b;
+			if (palette.mode != ModeRendu::TRUE_COLOR) {
+				int couleurIndex = trouverCouleurProche(r, g, b, palette);
+				couleurIndex = std::min(couleurIndex, static_cast<int>(palette.couleurs.size()) - 1);
+				const auto& coul = palette.couleurs[couleurIndex];
+				cr = coul.r;
+				cg = coul.g;
+				cb = coul.b;
+			}
+			
+			// Écrire le caractère avec sa couleur
+			fichier << "<span style=\"color:rgb(" << static_cast<int>(cr) << ","
+			        << static_cast<int>(cg) << "," << static_cast<int>(cb) << ")\">"
+			        << palette.caracteres[charIndex] << "</span>";
+		}
+		fichier << "\n";
+	}
+	
+	// Pied de page
+	fichier << "</pre>\n</body>\n</html>";
+	fichier.close();
+}
+
+// Export en ANSI avec codes d'échappement
+void sauvegarderAsciiArtANSI(const Image& image, const PaletteCouleur& palette, 
+                              const std::string& nomFichier) {
+	if (!image.estCouleur) {
+		throw std::runtime_error("L'image doit être en mode couleur pour export ANSI");
+	}
+	
+	std::ofstream fichier(nomFichier);
+	if (!fichier.is_open()) {
+		throw std::runtime_error("Impossible d'ouvrir le fichier : " + nomFichier);
+	}
+	
+	// Génération avec codes ANSI
+	// Saut d'une ligne sur deux pour compenser le ratio 2:1 des caractères
+	for (int y = 0; y < image.hauteur; y += 2) {
+		for (int x = 0; x < image.largeur; ++x) {
+			auto [r, g, b] = image.pixelsRGB[y * image.largeur + x];
+			
+			// Calculer luminosité pour caractère
+			float lum = calculerLuminosite(r, g, b);
+			int charIndex = static_cast<int>(lum * (palette.caracteres.size() - 1));
+			charIndex = std::min(charIndex, static_cast<int>(palette.caracteres.size()) - 1);
+			
+			// Déterminer la couleur
+			uint8_t cr = r, cg = g, cb = b;
+			if (palette.mode != ModeRendu::TRUE_COLOR) {
+				int couleurIndex = trouverCouleurProche(r, g, b, palette);
+				couleurIndex = std::min(couleurIndex, static_cast<int>(palette.couleurs.size()) - 1);
+				const auto& coul = palette.couleurs[couleurIndex];
+				cr = coul.r;
+				cg = coul.g;
+				cb = coul.b;
+			}
+			
+			// Code ANSI pour True Color : \033[38;2;R;G;Bm
+			fichier << "\033[38;2;" << static_cast<int>(cr) << ";"
+			        << static_cast<int>(cg) << ";" << static_cast<int>(cb) << "m"
+			        << palette.caracteres[charIndex];
+		}
+		fichier << "\033[0m\n";  // Reset couleur à la fin de la ligne
+	}
+	
+	fichier.close();
+}
+
+// Redimensionnement d'image couleur (équivalent RGB de redimensionnerImage)
+Image redimensionnerImageCouleur(const Image& image, int nouvelleLargeur, int nouvelleHauteur) {
+	// Si l'image est en niveaux de gris, utiliser la fonction monochrome
+	if (!image.estCouleur) {
+		ImagePGM pgm = image.toImagePGM();
+		ImagePGM redim = redimensionnerImage(pgm, nouvelleLargeur, nouvelleHauteur);
+		return Image::fromImagePGM(redim);
+	}
+	
+	int oldWidth = image.largeur;
+	int oldHeight = image.hauteur;
+	
+	// Calculer les ratios de redimensionnement
+	double ratioWidth = static_cast<double>(oldWidth) / nouvelleLargeur;
+	double ratioHeight = static_cast<double>(oldHeight) / nouvelleHauteur;
+	
+	Image nouvelleImage;
+	nouvelleImage.largeur = nouvelleLargeur;
+	nouvelleImage.hauteur = nouvelleHauteur;
+	nouvelleImage.estCouleur = true;
+	nouvelleImage.pixelsRGB.resize(nouvelleLargeur * nouvelleHauteur);
+	
+	for (int y = 0; y < nouvelleHauteur; ++y) {
+		for (int x = 0; x < nouvelleLargeur; ++x) {
+			// Calculer la zone correspondante dans l'image originale
+			int startX = static_cast<int>(x * ratioWidth);
+			int endX = static_cast<int>((x + 1) * ratioWidth);
+			int startY = static_cast<int>(y * ratioHeight);
+			int endY = static_cast<int>((y + 1) * ratioHeight);
+			
+			// Calculer la moyenne des pixels RGB dans cette zone
+			int sumR = 0, sumG = 0, sumB = 0;
+			int count = 0;
+			for (int yy = startY; yy < endY && yy < oldHeight; ++yy) {
+				for (int xx = startX; xx < endX && xx < oldWidth; ++xx) {
+					auto [r, g, b] = image.pixelsRGB[yy * oldWidth + xx];
+					sumR += r;
+					sumG += g;
+					sumB += b;
+					++count;
+				}
+			}
+			
+			uint8_t moyR = (count > 0) ? static_cast<uint8_t>(sumR / count) : 0;
+			uint8_t moyG = (count > 0) ? static_cast<uint8_t>(sumG / count) : 0;
+			uint8_t moyB = (count > 0) ? static_cast<uint8_t>(sumB / count) : 0;
+			
+			nouvelleImage.pixelsRGB[y * nouvelleLargeur + x] = std::make_tuple(moyR, moyG, moyB);
+		}
+	}
+	
+	return nouvelleImage;
+}
+
+// Fin du fichier fonctions.cpp

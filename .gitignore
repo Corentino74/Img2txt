@@ -1,16 +1,35 @@
-build
-/out
-.vs
-Img2txt.vcxproj.user
-Img2txt.vcxproj.filters
-/release
+# Dossiers de build
+build/
+release/
+out/
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.vcxproj.filters
+
+# Fichiers compilés
 *.exe
 *.obj
 *.pdb
 *.ilk
 *.log
 *.idb
-/debug
-/build
-/VERSIONS_PBLIEEES
-liste_palettes.txt
+*.o
+*.a
+*.so
+
+# Configuration
+debug/
+
+# Outils de packaging
+linuxdeploy*.AppImage
+*.AppDir/
+*.AppImage
+
+# Fichiers temporaires
+*~
+.DS_Store
+*.swp
+*.swo
+ICONE_README.md

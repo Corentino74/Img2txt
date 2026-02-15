@@ -2,21 +2,24 @@
 # Script de build et packaging pour Windows
 
 param(
-    [string]$Version = "3.0"
+    [string]$Version = "4.0"
 )
 
 $ErrorActionPreference = "Stop"
 
 $env:PATH += ";C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
 $AppName = "Img2txt"
+$ExeName = "Img2txt_v$Version"  # Nom de l'exécutable généré par CMake
 $QtPath = "C:/Qt/6.10.1/msvc2022_64"
 
-Write-Host "  Img2txt -> Release v$Version"
+Write-Host "== Img2txt v$Version -> Release Windows =="
 
-# 1. Clean du dossier de build si existe
-Remove-Item -Recurse -Force build, release -ErrorAction SilentlyContinue
+# clean du dossier de build si existe
+if (Test-Path "build") {
+    Remove-Item -Recurse -Force build
+}
 
-# 2. Configuration CMake
+# Configuration CMake
 cmake -B build `
     -DCMAKE_PREFIX_PATH="$QtPath" `
     -DCMAKE_BUILD_TYPE=Release `
@@ -27,7 +30,7 @@ if ($LASTEXITCODE -ne 0) { # En cas d'erreur...
     exit 1 
 }
 
-# 3. Compilation
+#  Compilation
 cmake --build build --config Release --parallel
 
 if ($LASTEXITCODE -ne 0) { 
@@ -35,13 +38,12 @@ if ($LASTEXITCODE -ne 0) {
     exit 1 
 }
 
-# 4. ! Etape de création du packag
-# Créer le dossier de release
-$ReleaseDir = "release/${AppName}_v${Version}_Windows_x64"
+# Création du packag
+$ReleaseDir = "release/${AppName}_v${Version}_Windows_x64" # Créer le dossier de release
 New-Item -ItemType Directory -Force -Path $ReleaseDir | Out-Null
 
 # Copier l'exécutable
-Copy-Item "build/Release/Img2txt_2_0.exe" "$ReleaseDir/${AppName}.exe"
+Copy-Item "build/Release/${ExeName}.exe" "$ReleaseDir/${AppName}.exe"
 
 # Déployer les DLLs Qt (seulement celles nécessaires)
 & "$QtPath/bin/windeployqt.exe" `
@@ -56,16 +58,12 @@ Copy-Item "build/Release/Img2txt_2_0.exe" "$ReleaseDir/${AppName}.exe"
 Remove-Item -Recurse -Force "$ReleaseDir/imageformats" -ErrorAction SilentlyContinue
 Remove-Item "$ReleaseDir/*.pdb" -ErrorAction SilentlyContinue
 
-# 5. Compression en ZIP
+# Compression en ZIP
 $ArchiveName = "${AppName}_v${Version}_Windows_x64.zip"
 Compress-Archive -Path "$ReleaseDir/*" -DestinationPath "release/$ArchiveName" -Force
 
-# ====================================
-# RÉSULTATS
-# ====================================
-$ExeSize = (Get-Item "$ReleaseDir/${AppName}.exe").Length / 1MB
-$TotalSize = (Get-ChildItem -Recurse $ReleaseDir | Measure-Object -Property Length -Sum).Sum / 1MB
-$ZipSize = (Get-Item "release/$ArchiveName").Length / 1MB
-
 # Nettoyer le dossier build
 Remove-Item -Recurse -Force build
+
+
+Write-Host "== Img2txt compilé avec succès =="
